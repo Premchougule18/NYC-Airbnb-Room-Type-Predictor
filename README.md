@@ -4,14 +4,6 @@ A Machine Learning web application that predicts the **Airbnb room type** based 
 
 The project uses a trained Machine Learning pipeline with a **FastAPI backend** and a simple **HTML, CSS, and JavaScript frontend**. The application is deployed on Render and provides predictions through a REST API.
 
-## 🚀 Live Demo
-
-👉 **[Try the Live Application](https://nyc-airbnb-room-type-predictor-2-07o8.onrender.com)**
-
-## 📂 GitHub Repository
-
-👉 **[View Source Code](https://github.com/Premchougule18/NYC-Airbnb-Room-Type-Predictor)**
-
 ---
 
 ## 📌 Project Description
