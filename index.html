@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Room Type Predictor — NYC Airbnb Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ambient night skyline background -->
+<div class="skyline" aria-hidden="true">
+  <svg id="skylineSvg" viewBox="0 0 1600 400" preserveAspectRatio="xMidYMax slice"></svg>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">◆</span>
+      <span class="brand-text">BOROUGH<span class="brand-accent">SCOPE</span></span>
+    </div>
+    <button class="endpoint-toggle" id="endpointToggle" title="API settings">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      API
+    </button>
+  </header>
+
+  <section class="hero">
+    <p class="eyebrow">Random Forest · Trained on NYC Listings</p>
+    <h1>Guess the room, <span class="hero-italic">before you list it.</span></h1>
+    <p class="hero-sub">Enter a listing's stats and this model — sitting inside a FastAPI service — predicts whether it reads as an entire place, a private room, or a shared room.</p>
+  </section>
+
+  <main class="layout">
+
+    <!-- FORM -->
+    <form class="panel form-panel" id="predictForm" autocomplete="off">
+      <div class="panel-head">
+        <h2>Listing details</h2>
+        <span class="panel-tag" id="fillTag">0 / 10 filled</span>
+      </div>
+
+      <div class="field-group">
+        <p class="group-label">Borough</p>
+        <div class="chip-row" id="boroughChips">
+          <button type="button" class="chip" data-value="Manhattan">Manhattan</button>
+          <button type="button" class="chip" data-value="Brooklyn">Brooklyn</button>
+          <button type="button" class="chip" data-value="Queens">Queens</button>
+          <button type="button" class="chip" data-value="Bronx">Bronx</button>
+          <button type="button" class="chip" data-value="Staten Island">Staten Island</button>
+        </div>
+        <input type="hidden" id="neighbourhood_group" required>
+      </div>
+
+      <div class="field-grid">
+        <div class="field">
+          <label for="neighbourhood">Neighbourhood</label>
+          <input list="neighbourhoodList" id="neighbourhood" placeholder="e.g. Williamsburg" required>
+          <datalist id="neighbourhoodList"></datalist>
+        </div>
+        <div class="field">
+          <label for="price">Price <span class="unit">$ / night</span></label>
+          <input type="number" id="price" min="1" step="1" placeholder="150" required>
+        </div>
+        <div class="field">
+          <label for="latitude">Latitude</label>
+          <input type="number" id="latitude" step="0.000001" min="-90" max="90" placeholder="40.712776" required>
+        </div>
+        <div class="field">
+          <label for="longitude">Longitude</label>
+          <input type="number" id="longitude" step="0.000001" min="-180" max="180" placeholder="-74.005974" required>
+        </div>
+        <div class="field">
+          <label for="minimum_nights">Minimum nights</label>
+          <input type="number" id="minimum_nights" min="1" max="365" step="1" placeholder="3" required>
+        </div>
+        <div class="field">
+          <label for="availability_365">Available days <span class="unit">/ 365</span></label>
+          <input type="number" id="availability_365" min="0" max="365" step="1" placeholder="180" required>
+        </div>
+        <div class="field">
+          <label for="number_of_reviews">Total reviews</label>
+          <input type="number" id="number_of_reviews" min="0" step="1" placeholder="24" required>
+        </div>
+        <div class="field">
+          <label for="reviews_per_month">Reviews <span class="unit">/ month</span></label>
+          <input type="number" id="reviews_per_month" min="0" step="0.01" placeholder="1.2" required>
+        </div>
+        <div class="field">
+          <label for="calculated_host_listings_count">Host's total listings</label>
+          <input type="number" id="calculated_host_listings_count" min="0" step="1" placeholder="2" required>
+        </div>
+      </div>
+
+      <button type="submit" class="predict-btn" id="predictBtn">
+        <span class="btn-label">Run prediction</span>
+        <span class="btn-loader" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+      </button>
+      <p class="form-error" id="formError"></p>
+    </form>
+
+    <!-- RESULT -->
+    <div class="panel result-panel">
+      <div class="map" id="mapPin">
+        <svg viewBox="0 0 200 140" class="map-grid" aria-hidden="true">
+          <defs>
+            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M20 0H0V20" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            </pattern>
+          </defs>
+          <rect width="200" height="140" fill="url(#grid)"/>
+        </svg>
+        <div class="pin-wrap">
+          <div class="pulse-ring"></div>
+          <div class="pulse-ring delay"></div>
+          <div class="pin"></div>
+        </div>
+      </div>
+
+      <div class="result-body">
+        <div class="result-idle" id="resultIdle">
+          <p class="idle-kicker">Awaiting input</p>
+          <p class="idle-text">Fill in the listing details and run the model to see its call — plus how confident it is.</p>
+        </div>
+
+        <div class="result-flip" id="resultFlip">
+          <p class="result-kicker" id="resultKicker">This listing reads as</p>
+          <h3 class="result-type" id="resultType">—</h3>
+
+          <div class="prob-list" id="probList"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="foot">
+    <p>Model served via a local FastAPI <code>/predict</code> endpoint · <span id="endpointLabel">http://localhost:8000/predict</span></p>
+  </footer>
+</div>
+
+<!-- endpoint config drawer -->
+<div class="drawer" id="endpointDrawer">
+  <div class="drawer-inner">
+    <h3>API endpoint</h3>
+    <p>Point this at your running FastAPI server.</p>
+    <input type="text" id="endpointInput" value="http://localhost:8000/predict">
+    <div class="drawer-actions">
+      <button type="button" class="drawer-cancel" id="drawerCancel">Cancel</button>
+      <button type="button" class="drawer-save" id="drawerSave">Save</button>
+    </div>
+  </div>
+</div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
