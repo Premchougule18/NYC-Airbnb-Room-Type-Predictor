@@ -19,7 +19,7 @@ const NEIGHBOURHOODS = {
 
 const state = {
   neighbourhood_group: null,
-  endpoint: localStorage.getItem("bs_endpoint") || "http://localhost:8000/predict"
+  endpoint: localStorage.getItem("bs_endpoint") || "https://nyc-airbnb-room-type-predictor-1-q7ox.onrender.com"
 };
 
 /* ---------------- skyline background ---------------- */
